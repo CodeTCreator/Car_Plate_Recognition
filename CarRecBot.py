@@ -37,6 +37,7 @@ def carplateDetect(image):
 # вырезание номеров
 def carplateExtract(image):
     carplate_rects = carplate_haar_cascade.detectMultiScale(image, scaleFactor=1.1, minNeighbors=12)
+    result = 0
     for x, y, w, h in carplate_rects:
         if(w > 150 and h > 50):
             result = image[y + 10:y + h - 10,
@@ -108,7 +109,7 @@ def workWithTesseract(img):
     for i in range(20):
         x = (pytesseract.image_to_string(resultImages[i],
                                         config=f'--psm 8 --oem 3 ', lang="rus+eng"))
-        print(x)
+        #print(x)
         val = checkCarRecognition(x)
         if val is not None:
             massResultString.append(val)
@@ -187,47 +188,51 @@ def recognition_auto_plate(line):
 
     # обнаружение номера
     detected_carplate_img = carplateDetect(carplate_img_rgb)
-    plt.imshow(detected_carplate_img)
-    plt.show()
+    #plt.imshow(detected_carplate_img)
+    #plt.show()
 
     # вырезание номера
     carplate_extract_img = carplateExtract(detected_carplate_img)
-    plt.imshow(carplate_extract_img)
-    plt.show()
-
-    # увеличение номера
-    carplate_extract_img = enlargeImg(carplate_extract_img, 150)
-    # plt.imshow(carplate_extract_img)
-    # plt.show()
-    cv2.imshow('beforeThresh', carplate_extract_img)
-    # cv2.waitKey()
-    # Перевод в серый цвет
-    carplate_extract_img_gray = cv2.cvtColor(carplate_extract_img, cv2.COLOR_RGB2GRAY)
-    carplate_extract_img_gray = cv2.threshold(carplate_extract_img_gray, 0, 255, cv2.THRESH_OTSU)[1]
-    cv2.imshow('afterThresh', carplate_extract_img_gray)
-    # cv2.waitKey()
-    plt.imshow(carplate_extract_img_gray)
-    plt.show()
-
-    # Размытие фото
-    image = photoBlurring(carplate_extract_img_gray)
-
-    start_time = time.time()
-    # Работа с тессерактом
-    workWithTesseract(image)
-    #workWithTesseract(carplate_extract_img_gray)
-    print("--- %s seconds --- step7" % (time.time() - start_time))
-
-    start_time = time.time()
-    # Обработка массива результатов
     resultLine = ""
-    resultLine = lineAnalysis()
-    print("--- %s seconds --- step8" % (time.time() - start_time))
+    if (type(carplate_extract_img) is int):
+        return ""
+    if (len(carplate_extract_img) > 0):
+        #plt.imshow(carplate_extract_img)
+        #plt.show()
+
+        # увеличение номера
+        carplate_extract_img = enlargeImg(carplate_extract_img, 150)
+        # plt.imshow(carplate_extract_img)
+        # plt.show()
+        cv2.imshow('beforeThresh', carplate_extract_img)
+        # cv2.waitKey()
+        # Перевод в серый цвет
+        carplate_extract_img_gray = cv2.cvtColor(carplate_extract_img, cv2.COLOR_RGB2GRAY)
+        carplate_extract_img_gray = cv2.threshold(carplate_extract_img_gray, 0, 255, cv2.THRESH_OTSU)[1]
+        cv2.imshow('afterThresh', carplate_extract_img_gray)
+        # cv2.waitKey()
+        #plt.imshow(carplate_extract_img_gray)
+        #plt.show()
+
+        # Размытие фото
+        image = photoBlurring(carplate_extract_img_gray)
+
+        start_time = time.time()
+        # Работа с тессерактом
+        workWithTesseract(image)
+        #workWithTesseract(carplate_extract_img_gray)
+        #print("--- %s seconds --- step7" % (time.time() - start_time))
+
+        start_time = time.time()
+        # Обработка массива результатов
+        resultLine = lineAnalysis()
+        #print("--- %s seconds --- step8" % (time.time() - start_time))
     return resultLine
 
-if __name__ == '__main__':
-
-    resultCarPlate = recognition_auto_plate('image/car10.jpg')
-    print("Результат: ",resultCarPlate)
+#if __name__ == '__main__':
+def MainRecognition(image):
+    resultCarPlate = recognition_auto_plate('image.jpg')
+    #print(resultCarPlate)
+    return resultCarPlate
 
 
