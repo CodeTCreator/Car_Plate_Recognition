@@ -6,12 +6,15 @@ import matplotlib.pyplot as plt
 import cv2
 import pytesseract
 
+from threading import Thread
+
+
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files (x86)\Tesseract-OCR\tesseract.exe'
 carplate_haar_cascade = cv2.CascadeClassifier('XML_files/haarcascade_russian_plate_number.xml')
 car_haar_cascade = cv2.CascadeClassifier('XML_files/cars.xml')
 
 resultImages = []
-massResultString = []
+massResultString = []       #Массив, куда записываются результаты обработки тессерактом
 resultCarPlates = []
 
 # Обнаружение автомобилей
@@ -99,25 +102,39 @@ def photoBlurring(carplate_extract_img_gray):
     return photo
 
 
+
+def parallel(resImage):
+    x = (pytesseract.image_to_string(resImage,
+                                     config=f'--psm 8 --oem 3 ', lang="rus+eng"))
+    val = checkCarRecognition(x)
+    if val is not None:
+        massResultString.append(val)
+
 # Работа с тессерактом
 def workWithTesseract(img):
     first = -10
     for i in range(20):
         resultImages.append(rotation(img, first))
         first = first + 1
+    massThread = []
     for i in range(20):
-        x = (pytesseract.image_to_string(resultImages[i],
-                                        config=f'--psm 8 --oem 3 ', lang="rus+eng"))
-        print(x)
-        val = checkCarRecognition(x)
-        if val is not None:
-            massResultString.append(val)
+        massThread.append(Thread(target=parallel, args=(resultImages[i],)))
+    for i in range(20):
+        massThread[i].start()
+    for i in range(20):
+        massThread[i].join()
 
-        """
-        x = pytesseract.image_to_string(resultImages[i],
-                                        config=f'--psm 8 --oem 3 ', lang="rus+eng")
-        print(checkCarRecognition(x))
-        """
+
+    # for i in range(20):
+    #     x = (pytesseract.image_to_string(resultImages[i],
+    #                                     config=f'--psm 8 --oem 3 ', lang="rus+eng"))
+    #     #print(x)
+    #     val = checkCarRecognition(x)
+    #     if val is not None:
+    #         massResultString.append(val)
+        # x = pytesseract.image_to_string(resultImages[i],
+        #                                 config=f'--psm 8 --oem 3 ', lang="rus+eng")
+        # print(checkCarRecognition(x))
 
 
 # Анализ массива результатов
@@ -226,7 +243,6 @@ def recognition_auto_plate(line):
     return resultLine
 
 if __name__ == '__main__':
-
     resultCarPlate = recognition_auto_plate('image/car10.jpg')
     print("Результат: ",resultCarPlate)
 
