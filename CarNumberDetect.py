@@ -40,6 +40,7 @@ def carplateDetect(image):
 # вырезание номеров
 def carplateExtract(image):
     carplate_rects = carplate_haar_cascade.detectMultiScale(image, scaleFactor=1.1, minNeighbors=12)
+    result = 0
     for x, y, w, h in carplate_rects:
         if(w > 150 and h > 50):
             result = image[y + 10:y + h - 10,
@@ -243,7 +244,7 @@ def recognition_auto_plate(line):
     return resultLine
 
 if __name__ == '__main__':
-    resultCarPlate = recognition_auto_plate('image/car10.jpg')
+    resultCarPlate = recognition_auto_plate('image.jpg')
     print("Результат: ",resultCarPlate)
 
 

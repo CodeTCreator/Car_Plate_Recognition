@@ -1,7 +1,7 @@
 
 import re
 import time
-
+from threading import Thread
 import matplotlib.pyplot as plt
 import cv2
 import pytesseract
@@ -100,25 +100,27 @@ def photoBlurring(carplate_extract_img_gray):
     return photo
 
 
+
+def parallel(resImage):
+    x = (pytesseract.image_to_string(resImage,
+                                     config=f'--psm 8 --oem 3 ', lang="rus+eng"))
+    val = checkCarRecognition(x)
+    if val is not None:
+        massResultString.append(val)
+
 # Работа с тессерактом
 def workWithTesseract(img):
     first = -10
     for i in range(20):
         resultImages.append(rotation(img, first))
         first = first + 1
+    massThread = []
     for i in range(20):
-        x = (pytesseract.image_to_string(resultImages[i],
-                                        config=f'--psm 8 --oem 3 ', lang="rus+eng"))
-        #print(x)
-        val = checkCarRecognition(x)
-        if val is not None:
-            massResultString.append(val)
-
-        """
-        x = pytesseract.image_to_string(resultImages[i],
-                                        config=f'--psm 8 --oem 3 ', lang="rus+eng")
-        print(checkCarRecognition(x))
-        """
+        massThread.append(Thread(target=parallel, args=(resultImages[i],)))
+    for i in range(20):
+        massThread[i].start()
+    for i in range(20):
+        massThread[i].join()
 
 
 # Анализ массива результатов
