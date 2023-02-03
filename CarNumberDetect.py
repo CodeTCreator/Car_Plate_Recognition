@@ -117,24 +117,24 @@ def workWithTesseract(img):
     for i in range(20):
         resultImages.append(rotation(img, first))
         first = first + 1
-    massThread = []
-    for i in range(20):
-        massThread.append(Thread(target=parallel, args=(resultImages[i],)))
-    for i in range(20):
-        massThread[i].start()
-    for i in range(20):
-        massThread[i].join()
-
-
+    # massThread = []
     # for i in range(20):
-    #     x = (pytesseract.image_to_string(resultImages[i],
-    #                                     config=f'--psm 8 --oem 3 ', lang="rus+eng"))
-    #     #print(x)
-    #     val = checkCarRecognition(x)
-    #     if val is not None:
-    #         massResultString.append(val)
-        # x = pytesseract.image_to_string(resultImages[i],
-        #                                 config=f'--psm 8 --oem 3 ', lang="rus+eng")
+    #     massThread.append(Thread(target=parallel, args=(resultImages[i],)))
+    # for i in range(20):
+    #     massThread[i].start()
+    # for i in range(20):
+    #     massThread[i].join()
+
+
+    for i in range(20):
+        x = (pytesseract.image_to_string(resultImages[i],
+                                        config=f'--psm 8 --oem 3 ', lang="rus+eng"))
+        #print(x)
+        val = checkCarRecognition(x)
+        if val is not None:
+            massResultString.append(val)
+        x = pytesseract.image_to_string(resultImages[i],
+                                        config=f'--psm 8 --oem 3 ', lang="rus+eng")
         # print(checkCarRecognition(x))
 
 
@@ -197,9 +197,34 @@ def lineAnalysis():
     resultString = ''.join(resultString)
 
     return resultString
+TranslateDictionary = {
+    'А':'A',
+    'В':'B',
+    'Е':'E',
+    'К':'K',
+    'М':'M',
+    'Н':'H',
+    'О':'O',
+    'Р':'P',
+    'С':'C',
+    'Т':'T',
+    'У':'У',
+    'Х':'X'}
 
+# Перевод в английские буквы и верхний регистр
+def translateLetters(line):
+    if(ord(line[0]) > 1000):
+        line = line.replace(line[0],TranslateDictionary[ line[0].title()],1)
+    if (ord(line[4]) > 1000):
+        line = line.replace(line[4], TranslateDictionary[ line[4].title()], 1)
+    if (ord(line[5]) > 1000):
+        line = line.replace(line[5], TranslateDictionary[ line[5].title()], 1)
+    return line
 # Основная функция
 def recognition_auto_plate(line):
+    resultImages.clear()
+    massResultString.clear()
+    resultCarPlates.clear()
     carplate_img = cv2.imread(line) #'image/car8.jpg'
     carplate_img_rgb = cv2.cvtColor(carplate_img, cv2.COLOR_BGR2RGB)
 
@@ -240,6 +265,7 @@ def recognition_auto_plate(line):
     # Обработка массива результатов
     resultLine = ""
     resultLine = lineAnalysis()
+    resultLine = translateLetters(resultLine)
     print("--- %s seconds --- step8" % (time.time() - start_time))
     return resultLine
 

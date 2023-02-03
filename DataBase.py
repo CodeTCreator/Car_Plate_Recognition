@@ -6,6 +6,7 @@ conn = 0
 cursor = 0
 # Основная функция добавления данных в БД
 def AddInDatabase(name_file): # передавать словарь
+    global cursor,conn
     data = WorkWithFile.ReadingTemplateFile(name_file)
     AddInTable_Driver(data['fio'],data['address'])
     data['id_driver'] = GetIdDriver(data['fio'],data['address'])
@@ -40,6 +41,7 @@ def AddInTable_Driver(fio,address):
 
 # Получение id владельца авто
 def GetIdDriver(fio,address):
+    global cursor
     cursor.execute(
         "Select id_driver from driver "
         f"where fio = '{fio}' and address = '{address}' "
@@ -48,6 +50,7 @@ def GetIdDriver(fio,address):
     return records[0]
 # Получения id свидетельства
 def GetIdVRC(number_vrc,car_plate,id_driver,issued):
+    global cursor
     cursor.execute(
         "Select id_certificate from vrc "
         f"where number_vrc = '{number_vrc}' and car_plate = '{car_plate}' and"
@@ -58,8 +61,33 @@ def GetIdVRC(number_vrc,car_plate,id_driver,issued):
 
 # Получение информации из БД по номеру авто (car_plate)
 def GetInfobyCarPlate(car_plate):
+    global cursor
     dictionary = {}
-
+    cursor.execute(
+        "select vrc.number_vrc,vrc.issued,vehicle.vin,vehicle.brand_model,"
+        "vehicle.body,vehicle.engine_capacity,vehicle.car_power,"
+        "vehicle.color,driver.fio,driver.address,a_vrc.date_issued"
+        " from vrc"
+        " join vehicle on vehicle.id_certificate = vrc.id_certificate"
+        " join a_vrc on a_vrc.id_certificate = vrc.id_certificate "
+        " join driver on driver.id_driver = vrc.id_driver "
+        f" where vrc.car_plate = '{car_plate}'"
+    )
+    records = cursor.fetchone()
+    if records:
+        dictionary['car_plate'] = car_plate
+        dictionary['number_vrc'] = records[0]
+        dictionary['issued'] = records[1]
+        dictionary['vin'] = records[2]
+        dictionary['brand_model'] = records[3]
+        dictionary['body'] = records[4]
+        dictionary['engine_capacity'] = records[5]
+        dictionary['car_power'] = records[6]
+        dictionary['color'] = records[7]
+        dictionary['fio'] = records[8]
+        dictionary['address'] = records[9]
+        dictionary['date_issued'] = records[10]
+    #print(records)
     return dictionary
 
 # Получение таблицы водителей
@@ -82,14 +110,29 @@ def DisconnectToDatabase():
     conn.close
     cursor.close
 
+# Перевод из словаря в текст
+def ConvertDictionaryToText(dictionary):
+    text = ""
+    for key,value in dictionary.items():
+        key = WorkWithFile.TranslationNames(key)
+        text = text + key + ": " + str(value) + "\n"
+    return text
+
+# Ответ на запрос бота
+def ResponseRequest(car_plate):
+   return ConvertDictionaryToText(GetInfobyCarPlate(car_plate))
 
 if __name__ == '__main__':
 
+
     ConnectToDatabase()
-    AddInDatabase("Шаблон заполнения.txt")
+    ResponseRequest()
     DisconnectToDatabase()
 # 1 - Владельца добавляем
 # 2 - Сор ТС
 # 3 - дальше всех добавляем
 
 # Сделать получение информации по номеру авто
+
+# Сделать чтобы выдавало русскими словами описание авто
+# Поменять обработку текста, а точнее заменять русские символы на английские

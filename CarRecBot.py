@@ -180,11 +180,37 @@ def lineAnalysis():
             if resultString[1] == 'B' or resultString[1] == 'В':
                 resultString[9] = '8'
     resultString = ''.join(resultString)
-
+    resultString = translateLetters(resultString)
     return resultString
+TranslateDictionary = {
+    'А':'A',
+    'В':'B',
+    'Е':'E',
+    'К':'K',
+    'М':'M',
+    'Н':'H',
+    'О':'O',
+    'Р':'P',
+    'С':'C',
+    'Т':'T',
+    'У':'У',
+    'Х':'X'}
+
+# Перевод в английские буквы и верхний регистр
+def translateLetters(line):
+    if(ord(line[0]) > 1000):
+        line = line.replace(line[0],TranslateDictionary[ line[0].title()],1)
+    if (ord(line[4]) > 1000):
+        line = line.replace(line[4], TranslateDictionary[ line[4].title()], 1)
+    if (ord(line[5]) > 1000):
+        line = line.replace(line[5], TranslateDictionary[ line[5].title()], 1)
+    return line
 
 # Основная функция
 def recognition_auto_plate(line):
+    resultImages.clear()
+    massResultString.clear()
+    resultCarPlates.clear()
     carplate_img = cv2.imread(line) #'image/car8.jpg'
     carplate_img_rgb = cv2.cvtColor(carplate_img, cv2.COLOR_BGR2RGB)
 
@@ -206,21 +232,21 @@ def recognition_auto_plate(line):
         carplate_extract_img = enlargeImg(carplate_extract_img, 150)
         # plt.imshow(carplate_extract_img)
         # plt.show()
-        cv2.imshow('beforeThresh', carplate_extract_img)
+        #cv2.imshow('beforeThresh', carplate_extract_img)
         # cv2.waitKey()
         # Перевод в серый цвет
         carplate_extract_img_gray = cv2.cvtColor(carplate_extract_img, cv2.COLOR_RGB2GRAY)
         carplate_extract_img_gray = cv2.threshold(carplate_extract_img_gray, 0, 255, cv2.THRESH_OTSU)[1]
-        cv2.imshow('afterThresh', carplate_extract_img_gray)
+        #cv2.imshow('afterThresh', carplate_extract_img_gray)
         # cv2.waitKey()
         #plt.imshow(carplate_extract_img_gray)
         #plt.show()
 
         # Размытие фото
         image = photoBlurring(carplate_extract_img_gray)
-
         start_time = time.time()
         # Работа с тессерактом
+
         workWithTesseract(image)
         #workWithTesseract(carplate_extract_img_gray)
         #print("--- %s seconds --- step7" % (time.time() - start_time))
