@@ -28,12 +28,10 @@ def carDetect(image):
 
 # Обнаружение номеров
 def carplateDetect(image):
-    carplate_overlay = image
-    carplate_rects = carplate_haar_cascade.detectMultiScale(carplate_overlay, scaleFactor=1.3, minNeighbors=12)
+    carplate_rects = carplate_haar_cascade.detectMultiScale(image, scaleFactor=1.3, minNeighbors=12)
     for x, y, w, h in carplate_rects:
-        cv2.rectangle(carplate_overlay, (x, y), (x + w, y + h), (255, 0, 0), 5)
-
-    return carplate_overlay
+        cv2.rectangle(image, (x, y), (x + w, y + h), (255, 0, 0), 5)
+    return image
 
 
 # вырезание номеров
